@@ -2,7 +2,8 @@
 
 public class Item
 {
-    public string Id { get; set; }
+    private static int counter = 1;
+    public string Id { get; }
     public string Name { get; set; }
     public string ShelfId { get; set; }
     public string Type { get; set; }
@@ -10,9 +11,10 @@ public class Item
     public DateTime ExpiryDate { get; set; }
     public double SpaceTaken { get; set; }
 
-    public Item(string itemId, string name, string type, string kosherType, DateTime expiryDate, double spaceTaken)
+    public Item( string name, string type, string kosherType, DateTime expiryDate, double spaceTaken)
     {
-        Id = itemId;
+        Id = counter.ToString();
+        counter++;
         Name = name;
         Type = type;
         Kashrut = kosherType;

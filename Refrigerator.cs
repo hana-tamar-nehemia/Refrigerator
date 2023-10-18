@@ -3,23 +3,25 @@ using System.Collections.Generic;
 
 public class Refrigerator
 {
-    public string Id { get; set; }
+    private static int counter = 1;
+    public string Id { get; }
     public string Model { get; set; }
     public string Color { get; set; }
     public int NumShelves { get; set; }
     public List<Shelf> Shelves { get; set; }
 
 
-    public Refrigerator(string id, string model, string color, int numberOfShelves, List<Shelf> shelves)
+    public Refrigerator( string model, string color, int numberOfShelves, List<Shelf> shelves)
     {
-        Id = id;
+        Id = counter.ToString();
+        counter++;
         Model = model;
         Color = color;
         NumShelves = numberOfShelves;
         Shelves = shelves;
     }
 
-    //לוקחים את סך כל המקום הפנוי שיש במדפים
+    //פונקציה שמחזירה כמה מקום נשאר במקרר.
     public double AvailableSpaceOnRefrigerator()
     {
         double totalSpace = 0;
@@ -30,7 +32,7 @@ public class Refrigerator
         return totalSpace;
     }
 
-    //כל פריט שהתאריך שלו קטן מהתאריך הנוכחי יצא מהמדף וככה בכל מדף
+    //ניקוי מקרר - כל מה שפג תוקך צריך לזרוק לפח!
     public void CleanExpiryDate()
     {
         foreach (var shelf in Shelves)
@@ -39,8 +41,8 @@ public class Refrigerator
         }
     }
 
-    //עוברים על כל הפריטים במקרר ומכניסים לרשימת החזרה רק
-    //מי שלפי הכשרות הרצויה והסוג וגם אם זה לא פג תוקף
+    //מה בא לי לאכול? פונקציה שמקבלת כשרות וסוג אוכל ומחזירה אליו מאכלים כאלה קיימים במקרר
+    //כמובן שלא נחזיר מאכלים פגי תוקף
     public List<Item> GetItemsByKashrutAndType(string kashrut, string type)
     {
         List<Item> items = new List<Item>();
@@ -56,21 +58,23 @@ public class Refrigerator
         }
         return items;
     }
-
-    //עוברים מדף מדף וכשמגיעים למדף שיש בו מקום מכניסים אליו את הפריט
+    //פונקציית הכנסת פריט למקרר.
     public void AddItem(Item item)
     {
         foreach (var shelf in Shelves)
         {
-            if (shelf.SpaceTakenInShelf() >= item.SpaceTaken)
+            if (shelf.AvailableSpaceInShelf() >= item.SpaceTaken)
             {
                 item.ShelfId = shelf.Id;
                 shelf.Items.Add(item);
+                return;
             }
         }
+        Console.WriteLine("there is not enough space");
+
     }
 
-    //עוברים מדף מדף ומוצאים את הפריט אם מצאנו אותו
+    //הוצאת פריט מהמקרר - פנקצויה שמקבלת מזהה פריט, מוציאה אותו מהמקרר ומחזירה אותו למשתמש.
     public Item RemoveItem(string itemId)
     {
         foreach (var shelf in Shelves)
@@ -98,7 +102,7 @@ public class Refrigerator
     }
 
 
-    //ניצור רשימה חדשה של כל הפריטים שיש במקרר ואז נמיין אותה
+    //הפונקציה תמיין ותחזיר את כלל המוצרים לפי תאריך תפוגה שלהם (בסדר עולה)
     public List<Item> SortByExpiryDate()
     {
         List<Item> allItems = new List<Item>();
@@ -110,14 +114,14 @@ public class Refrigerator
         return allItems;
     }
 
-    //נמיין מדפים עי השוואה בין גודל המקום הפנוי במדף
+    //הפונקציה תמיין ותחזיר את כלל המדפים לפי מקום פנוי שנשאר עליהם (מהגדול לקטן)
     public List<Shelf> SortShelvesBySpace()
     {
         Shelves.Sort((shelf1, shelf2) => shelf2.AvailableSpaceInShelf().CompareTo(shelf1.AvailableSpaceInShelf()));
         return Shelves;
     }
 
-    //נמיין מדפים עי השוואה בין גודל המקום הפנוי במקררים
+    //הפונקציה תמיין ותחזיר את כלל המקררים לפי מקום פנוי שנשאר בהם (מהגדול לקטן)
     public List<Refrigerator> SortRefrigeratorsBySpace()
     {
         List<Refrigerator> refrigerators = new List<Refrigerator> { this };
@@ -125,20 +129,17 @@ public class Refrigerator
         return refrigerators;
     }
 
-    public override string ToString()
-    {
-        return $"Refrigerator ID: {Id}, Model: {Model}, Color: {Color}, Number of Shelves: {NumShelves}, Available Space: {AvailableSpaceOnRefrigerator()}cm^2";
-    }
-
+    //מתכוננים לקניות:
     public void CleanForShoping()
     {
-
+        //הפונקציה תבדוק תחילה אם יש 29 סמר פנויים במקרר ואם לא, תמשיך בשאר התהליך.
         if (AvailableSpaceOnRefrigerator() >= 29)
         {
             Console.WriteLine("There is space");
             return;
         }
 
+    // במידה ואין מקום במקרר, יש לזרוק לפח את כל המוצרים פגי התוקף.
         CleanExpiryDate();
 
         if (AvailableSpaceOnRefrigerator() >= 29)
@@ -155,24 +156,44 @@ public class Refrigerator
             allItems.AddRange(shelf.Items);
         }
 
+        // כלל המוצרים החלביים שתוקפם עוד פחות משלושה ימים.
         foreach (var item in allItems)
         {
-            if (item.Kashrut == "Dairy" && (item.ExpiryDate - DateTime.Now).Days < 3)
+            if (item.Kashrut == "חלבי" && (item.ExpiryDate - DateTime.Now).Days < 3)
             {
                 toDiscard.Add(item);
-                Console.WriteLine($"Item {item.Name} with ID {item.Id} has been discarded.");
+                Console.WriteLine($"Item {item.Name} has been discarded.");
                 RemoveItem(item.Id);
 
             }
         }
+        //כלל המוצרים הבשריים שתוקפם עוד פחות משבוע.
         if (AvailableSpaceOnRefrigerator() < 29)
         {
             foreach (var item in allItems)
             {
-                if (item.Kashrut == "Meat" && (item.ExpiryDate - DateTime.Now).Days < 7)
+                if (item.Kashrut == "בשרי" && (item.ExpiryDate - DateTime.Now).Days < 7)
                 {
                     toDiscard.Add(item);
-                    Console.WriteLine($"Item {item.Name} with ID {item.Id} has been discarded.");
+                    Console.WriteLine($"Item {item.Name} has been discarded.");
+                    RemoveItem(item.Id);
+                }
+            }
+        }
+        else
+        {
+            Console.WriteLine("There is space");
+            return;
+        }
+        //כלל המוצרים הפרווה שתוקפם עוד פחות מיום.
+        if (AvailableSpaceOnRefrigerator() < 29)
+        {
+            foreach (var item in allItems)
+            {
+                if (item.Kashrut == "פרווה" && (item.ExpiryDate - DateTime.Now).Days < 1)
+                {
+                    toDiscard.Add(item);
+                    Console.WriteLine($"Item {item.Name} has been discarded.");
                     RemoveItem(item.Id);
                 }
             }
@@ -183,29 +204,13 @@ public class Refrigerator
             return;
         }
 
-        if (AvailableSpaceOnRefrigerator() < 29)
-        {
-            foreach (var item in allItems)
-            {
-                if (item.Kashrut == "Pareve" && (item.ExpiryDate - DateTime.Now).Days < 1)
-                {
-                    toDiscard.Add(item);
-                    Console.WriteLine($"Item {item.Name} with ID {item.Id} has been discarded.");
-                    RemoveItem(item.Id);
-                }
-            }
-        }
-        else
-        {
-            Console.WriteLine("There is space");
-            return;
-        }
-
-
+        
         if (AvailableSpaceOnRefrigerator() >= 29)
         {
             Console.WriteLine("there is enough space in the refrigerator for new shoping.");
         }
+        //אם לא מתפנה מקום במקרר, יש להשאיר את המוצרים שעדיין
+        //לא פג תוקפם ולהחזיר למשתמש הודעה שזה לא הזמן לעשות קניות
         else
         {
             allItems.AddRange(toDiscard);
@@ -213,4 +218,8 @@ public class Refrigerator
         }
     }
 
+    public override string ToString()
+    {
+        return $"Refrigerator ID: {Id}, Model: {Model}, Color: {Color}, Number of Shelves: {NumShelves}";
+    }
 }

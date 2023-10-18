@@ -3,16 +3,18 @@ using System.Collections.Generic;
 
 public class Shelf
 {
-    public string Id { get; set; }
+    private static int counter = 1;
+    public string Id { get; }
     public int Floor { get; set; }
-    public double MaxSpace { get; set; }
+    public double Space { get; set; }
     public List<Item> Items { get; set; }
 
-    public Shelf(string id, int floor, double MaxSpace)
+    public Shelf(int floor, double MaxSpace)
     {
-        Id = id;
+        Id = counter.ToString();
+        counter++;
         Floor = floor;
-        MaxSpace = MaxSpace;
+        Space = MaxSpace;
         Items = new List<Item>();
     }
     public double SpaceTakenInShelf()
@@ -31,11 +33,11 @@ public class Shelf
         {
             totalItemSpace += item.SpaceTaken;
         }
-        return (MaxSpace - totalItemSpace);
+        return (Space - totalItemSpace);
     }
     public string ToString()
     {
-        return $"Shelf ID: {Id}, Floor: {Floor}, Max Space: {MaxSpace}cm^2";
+        return $"Shelf ID: {Id}, Floor: {Floor}, Space: {Space}cm^2";
     }
 }
 
